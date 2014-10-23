@@ -1,11 +1,7 @@
 (ns flense-demo.app
   (:require [cljs.core.async :as async]
-            [flense.actions :refer [actions]]
+            [flense.actions :refer [default-actions]]
             [flense.actions.history :as hist]
-            flense.actions.clipboard
-            flense.actions.clojure
-            flense.actions.movement
-            flense.actions.paredit
             [flense.editor :refer [editor-view]]
             [flense.model :as model]
             [flense-demo.keymap :refer [keymap]]
@@ -21,7 +17,7 @@
                              '(defn greet [name] (str "Hello, " name "!")))]}}))
 
 (defn bound-action [ev]
-  (-> ev phalanges/key-set keymap (@actions)))
+  (-> ev phalanges/key-set keymap default-actions))
 
 (defn handle-key [ev]
   (when-let [action (bound-action ev)]
@@ -36,9 +32,9 @@
   (when-let [action (bound-action ev)]
     (if (model/stringlike? form)
       ;; prevent all keybinds except those that end editing
-      (#{:move/up :paredit/insert-outside} (:name action))
+      (contains? (:tags (meta action)) :end-text-editing)
       ;; prevent delete keybind unless text fully selected
-      (or (not= (:name action) :flense/remove)
+      (or (not (contains? (:tags (meta action)) :remove))
           (fully-selected? (.-target ev))))))
 
 (defn init []
