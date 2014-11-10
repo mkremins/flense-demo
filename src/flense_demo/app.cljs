@@ -1,7 +1,6 @@
 (ns flense-demo.app
   (:require [cljs.core.async :as async]
-            [flense.actions :refer [default-actions]]
-            [flense.actions.history :as hist]
+            [flense.actions.text :as text]
             [flense.editor :refer [editor-view]]
             [flense.model :as model]
             [flense-demo.keymap :refer [keymap]]
@@ -12,39 +11,33 @@
 (defonce edit-chan (async/chan))
 
 (defonce app-state
-  (atom {:path [0]
-         :tree {:children [(model/form->tree
-                             '(defn greet [name] (str "Hello, " name "!")))]}}))
+  (atom (model/forms->document
+          '[(defn greet [name] (str "Hello, " name "!"))])))
 
-(defn bound-action [ev]
-  (-> ev phalanges/key-set keymap default-actions))
+(defn- handle-keydown [ev]
+  (let [keyset (phalanges/key-set ev)]
+    (when-let [action (keymap keyset)]
+      (.preventDefault ev)
+      (async/put! edit-chan action))))
 
-(defn handle-key [ev]
-  (when-let [action (bound-action ev)]
-    (.preventDefault ev)
-    (async/put! edit-chan action)))
+(def legal-char?
+  (let [uppers (map (comp js/String.fromCharCode (partial + 65)) (range 26))
+        lowers (map (comp js/String.fromCharCode (partial + 97)) (range 26))
+        digits (map str (range 10))
+        puncts [\. \! \? \$ \% \& \+ \- \* \/ \= \< \> \_ \: \' \\ \|]]
+    (set (concat uppers lowers digits puncts))))
 
-(defn fully-selected? [input]
-  (and (= (.-selectionStart input) 0)
-       (= (.-selectionEnd input) (count (.-value input)))))
-
-(defn propagate-keypress? [ev form]
-  (when-let [action (bound-action ev)]
-    (if (model/stringlike? form)
-      ;; prevent all keybinds except those that end editing
-      (contains? (:tags (meta action)) :end-text-editing)
-      ;; prevent delete keybind unless text fully selected
-      (or (not (contains? (:tags (meta action)) :remove))
-          (fully-selected? (.-target ev))))))
+(defn- handle-keypress [ev]
+  (let [c (phalanges/key-char ev)]
+    (when (legal-char? c)
+      (.preventDefault ev)
+      (async/put! edit-chan (partial text/insert-char c)))))
 
 (defn init []
-  (hist/push-state! @app-state)
   (om/root editor-view app-state
     {:target (.getElementById js/document "editor")
-     :opts {:edit-chan edit-chan
-            :propagate-keypress? propagate-keypress?}
-     :tx-listen (fn [{:keys [new-state tag] :or {tag #{}}}]
-                  (when-not (tag :history) (hist/push-state! new-state)))})
-  (.addEventListener js/window "keydown" handle-key))
+     :opts {:edit-chan edit-chan}})
+  (.addEventListener js/window "keydown" handle-keydown)
+  (.addEventListener js/window "keypress" handle-keypress))
 
 (init)

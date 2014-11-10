@@ -1,42 +1,57 @@
-(ns flense-demo.keymap)
+(ns flense-demo.keymap
+  (:require [flense.actions.clipboard :as clipboard]
+            [flense.actions.clojure :as clojure]
+            [flense.actions.history :as history]
+            [flense.actions.paredit :as paredit]
+            [flense.actions.text :as text]
+            [flense.model :as model]
+            [xyzzy.core :as z]))
 
 (def keymap
-  {#{:backspace}                         :paredit/remove
-   #{:down}                              :move/down
-   #{:enter}                             :paredit/insert-outside
-   #{:left}                              :move/left
-   #{:open-square-bracket}               :paredit/wrap-square
-   #{:right}                             :move/right
-   #{:space}                             :paredit/insert-right
-   #{:tab}                               :clojure/expand-template
-   #{:up}                                :move/up
-   #{:ctrl :open-square-bracket}         :paredit/make-square
-   #{:ctrl :shift :nine}                 :paredit/make-round
-   #{:ctrl :shift :open-square-bracket}  :paredit/make-curly
-   #{:meta :c}                           :clipboard/copy
-   #{:meta :v}                           :clipboard/paste
-   #{:meta :x}                           :clipboard/cut
-   #{:meta :y}                           :history/redo
-   #{:meta :z}                           :history/undo
-   #{:meta :ctrl :a}                     :paredit/join-left
-   #{:meta :ctrl :k}                     :paredit/swap-left
-   #{:meta :ctrl :l}                     :paredit/swap-right
-   #{:meta :ctrl :left}                  :paredit/shrink-left
-   #{:meta :ctrl :nine}                  :paredit/split-left
-   #{:meta :ctrl :right}                 :paredit/shrink-right
-   #{:meta :ctrl :s}                     :paredit/join-right
-   #{:meta :ctrl :up}                    :paredit/splice
-   #{:meta :ctrl :zero}                  :paredit/split-right
-   #{:meta :shift :d}                    :clojure/jump-to-definition
-   #{:meta :shift :k}                    :move/prev-placeholder
-   #{:meta :shift :l}                    :move/next-placeholder
-   #{:meta :shift :left}                 :paredit/grow-left
-   #{:meta :shift :right}                :paredit/grow-right
-   #{:meta :shift :up}                   :paredit/raise
-   #{:shift :left}                       :move/prev
-   #{:shift :nine}                       :paredit/wrap-round
-   #{:shift :open-square-bracket}        :paredit/wrap-curly
-   #{:shift :single-quote}               :paredit/wrap-quote
-   #{:shift :right}                      :move/next
-   #{:shift :space}                      :paredit/insert-left
-   #{:shift :three}                      :clojure/toggle-dispatch})
+  {#{:down} text/down
+   #{:left} z/left-or-wrap
+   #{:right} z/right-or-wrap
+   #{:up} text/up
+   #{:shift :left} z/prev
+   #{:shift :right} z/next
+   #{:meta :shift :k} model/prev-placeholder
+   #{:meta :shift :l} model/next-placeholder
+
+   #{:backspace} #(or (text/delete-char %) (paredit/delete %))
+   #{:shift :backspace} paredit/delete
+   #{:shift :space} paredit/insert-left
+   #{:enter} paredit/insert-outside
+   #{:space} paredit/insert-right
+
+   #{:ctrl :shift :open-square-bracket} paredit/make-map
+   #{:ctrl :shift :nine} paredit/make-seq
+   #{:ctrl :open-square-bracket} paredit/make-vec
+
+   #{:shift :open-square-bracket} paredit/wrap-map
+   #{:shift :nine} paredit/wrap-seq
+   #{:shift :single-quote} text/wrap-string
+   #{:open-square-bracket} paredit/wrap-vec
+
+   #{:meta :shift :left} paredit/grow-left
+   #{:meta :shift :right} paredit/grow-right
+   #{:meta :ctrl :a} paredit/join-left
+   #{:meta :ctrl :s} paredit/join-right
+   #{:meta :shift :up} paredit/raise
+   #{:meta :ctrl :left} paredit/shrink-left
+   #{:meta :ctrl :right} paredit/shrink-right
+   #{:meta :ctrl :up} paredit/splice
+   #{:meta :ctrl :nine} paredit/split-left
+   #{:meta :ctrl :zero} paredit/split-right
+   #{:meta :ctrl :k} paredit/swap-left
+   #{:meta :ctrl :l} paredit/swap-right
+
+   #{:meta :c} clipboard/copy
+   #{:meta :x} clipboard/cut
+   #{:meta :v} clipboard/paste
+
+   #{:tab} clojure/expand-template
+   #{:meta :shift :d} clojure/jump-to-definition
+   #{:shift :three} clojure/toggle-dispatch
+
+   #{:meta :z} history/undo
+   #{:meta :y} history/redo})
