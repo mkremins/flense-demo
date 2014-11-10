@@ -4,6 +4,7 @@
             [flense.editor :refer [editor-view]]
             [flense.model :as model]
             [flense-demo.keymap :refer [keymap]]
+            [flense-demo.sidebar :refer [sidebar]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [phalanges.core :as phalanges]))
@@ -37,6 +38,8 @@
   (om/root editor-view app-state
     {:target (.getElementById js/document "editor")
      :opts {:edit-chan edit-chan}})
+  (om/root sidebar app-state
+    {:target (.getElementById js/document "sidebar")})
   (.addEventListener js/window "keydown" handle-keydown)
   (.addEventListener js/window "keypress" handle-keypress))
 

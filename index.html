@@ -12,8 +12,30 @@
       font-family: 'Source Code Pro';
       font-size: 14px;
       line-height: 1.4;
-      margin-left: 5%;
-      margin-top: 40px;
+      margin: 40px auto;
+      width: 1200px;
+    }
+    #editor {
+      display: inline-block;
+      margin-right: 30px;
+      vertical-align: top;
+      width: 680px;
+    }
+    #sidebar {
+      display: inline-block;
+      font-family: sans-serif;
+
+      width: 480px;
+    }
+    #sidebar section {
+      margin-bottom: 1rem;
+    }
+    #sidebar tr.disabled {
+      color: #ccc;
+      text-decoration: line-through;
+    }
+    #sidebar td:first-child {
+      padding-right: 1rem;
     }
   </style>
   <link rel="stylesheet" href="vendor/flense/stylesheets/base.css">
@@ -22,6 +44,7 @@
 </head>
 <body>
   <div id="editor"></div>
+  <div id="sidebar"></div>
   <script src="target/flense_demo.js"></script>
 </body>
 </html>
