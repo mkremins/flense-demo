@@ -1,7 +1,7 @@
 (ns flense-demo.app
   (:require [cljs.core.async :as async]
             [flense.actions.text :as text]
-            [flense.editor :refer [editor-view]]
+            [flense.editor :as flense]
             [flense.model :as model]
             [flense-demo.keymap :refer [keymap]]
             [flense-demo.sidebar :refer [sidebar]]
@@ -35,7 +35,7 @@
       (async/put! edit-chan (partial text/insert-char c)))))
 
 (defn init []
-  (om/root editor-view app-state
+  (om/root flense/editor app-state
     {:target (.getElementById js/document "editor")
      :opts {:edit-chan edit-chan}})
   (om/root sidebar app-state
