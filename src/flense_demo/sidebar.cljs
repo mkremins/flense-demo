@@ -9,11 +9,11 @@
             [xyzzy.core :as z]))
 
 (defn movement-keybinds [loc]
-  [["Down" (if (m/stringlike-loc? loc)
+  [["Down" (if (m/stringlike? loc)
              "Begin editing text inside this form"
              "Select this form's first child")
            (text/down loc)]
-   ["Up" (if (and (m/stringlike-loc? loc) (:editing? (z/node loc)))
+   ["Up" (if (and (m/stringlike? loc) (:editing? (z/node loc)))
            "Finish editing text inside this form"
            "Select this form's parent")
          (text/up loc)]
@@ -21,7 +21,7 @@
    ["Right" "Select the form to the right, or wrap around" (z/right-or-wrap loc)]])
 
 (defn structural-keybinds [loc]
-  [["Backspace" (if (or (not (m/atom-loc? loc)) (m/placeholder-loc? loc))
+  [["Backspace" (if (or (not (m/atom? loc)) (m/placeholder? loc))
                   "Delete this form"
                   "Delete the last character of this form")
                 true]
@@ -31,7 +31,7 @@
    ["Shift+9" "Wrap this form in a sequence" true]
    ["Open-bracket" "Wrap this form in a vector" true]
    ["Shift+Open-bracket" "Wrap this form in a map" true]
-   ["Shift+Single-quote" "Wrap this form in a string" (m/atom-loc? loc)]])
+   ["Shift+Single-quote" "Wrap this form in a string" (m/atom? loc)]])
 
 (defn semantic-keybinds [loc]
   [["Tab" "Expand template" (clojure/expand-template loc)]])
