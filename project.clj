@@ -6,20 +6,20 @@
             :distribution :repo}
 
   :dependencies
-  [[org.clojure/clojure "1.6.0"]
-   [org.clojure/clojurescript "0.0-2371"]
-   [org.clojure/core.async "0.1.346.0-17112a-alpha"]
-   [com.facebook/react "0.11.2"]
+  [[org.clojure/clojure "1.7.0"]
+   [org.clojure/clojurescript "1.7.145"]
    [mkremins/flense "0.0-SNAPSHOT"]
-   [om "0.7.3"]
-   [spellhouse/phalanges "0.1.4"]]
+   [org.omcljs/om "1.0.0-alpha3"]
+   [prismatic/om-tools "0.4.0"]
+   [spellhouse/phalanges "0.1.6"]]
 
   :plugins
-  [[lein-cljsbuild "1.0.3"]]
+  [[lein-cljsbuild "1.1.0"]]
 
   :cljsbuild
   {:builds [{:source-paths ["src"]
-             :compiler {:preamble ["react/react.js"]
-                        :output-to "target/flense_demo.js"
-                        :source-map "target/flense_demo.js.map"
-                        :optimizations :whitespace}}]})
+             :compiler {:main flense-demo.app
+                        :output-to "target/app.js"
+                        :output-dir "target"
+                        :source-map true
+                        :optimizations :none}}]})

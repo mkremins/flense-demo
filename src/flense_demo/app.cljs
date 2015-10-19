@@ -1,6 +1,5 @@
 (ns flense-demo.app
-  (:require [cljs.core.async :as async]
-            [flense.actions.text :as text]
+  (:require [flense.actions.text :as text]
             [flense.editor :as flense]
             [flense.model :as model]
             [flense-demo.keymap :refer [keymap]]
@@ -9,17 +8,18 @@
             [om.dom :as dom :include-macros true]
             [phalanges.core :as phalanges]))
 
-(defonce edit-chan (async/chan))
-
 (defonce app-state
   (atom (model/forms->document
           '[(defn greet [name] (str "Hello, " name "!"))])))
+
+(defn perform! [action]
+  (swap! app-state (flense/perform action)))
 
 (defn- handle-keydown [ev]
   (let [keyset (phalanges/key-set ev)]
     (when-let [action (keymap keyset)]
       (.preventDefault ev)
-      (async/put! edit-chan action))))
+      (perform! action))))
 
 (def legal-char?
   (let [uppers (map (comp js/String.fromCharCode (partial + 65)) (range 26))
@@ -32,14 +32,13 @@
   (let [c (phalanges/key-char ev)]
     (when (legal-char? c)
       (.preventDefault ev)
-      (async/put! edit-chan (partial text/insert-char c)))))
+      (perform! (partial text/insert c)))))
 
 (defn init []
   (om/root flense/editor app-state
-    {:target (.getElementById js/document "editor")
-     :opts {:edit-chan edit-chan}})
-  (om/root sidebar app-state
-    {:target (.getElementById js/document "sidebar")})
+    {:target (.getElementById js/document "editor")})
+  ;(om/root sidebar app-state
+  ;  {:target (.getElementById js/document "sidebar")})
   (.addEventListener js/window "keydown" handle-keydown)
   (.addEventListener js/window "keypress" handle-keypress))
 

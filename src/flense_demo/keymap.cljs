@@ -1,27 +1,36 @@
 (ns flense-demo.keymap
   (:require [flense.actions.clipboard :as clipboard]
             [flense.actions.clojure :as clojure]
+            [flense.actions.completions :as completions]
             [flense.actions.history :as history]
             [flense.actions.paredit :as paredit]
             [flense.actions.text :as text]
             [flense.model :as model]
             [xyzzy.core :as z]))
 
+(defn maybe-insert [ch else-fn]
+  #(if (model/editing? %)
+     (text/insert ch %)
+     (else-fn %)))
+
 (def keymap
-  {#{:down} text/down
-   #{:left} z/left-or-wrap
-   #{:right} z/right-or-wrap
-   #{:up} text/up
-   #{:shift :left} z/prev
-   #{:shift :right} z/next
+  {#{:down} (some-fn text/begin-editing completions/next-completion z/down)
+   #{:left} (some-fn text/move-caret-left z/left-or-wrap)
+   #{:right} (some-fn text/move-caret-right z/right-or-wrap)
+   #{:up} (some-fn text/cease-editing completions/prev-completion z/up)
+   #{:alt :left} text/move-caret-left-by-word
+   #{:alt :right} text/move-caret-right-by-word
+   #{:shift :left} (some-fn text/adjust-range-left z/prev)
+   #{:shift :right} (some-fn text/adjust-range-right z/next)
+   #{:alt :shift :left} text/adjust-range-left-by-word
+   #{:alt :shift :right} text/adjust-range-right-by-word
    #{:meta :shift :k} model/prev-placeholder
    #{:meta :shift :l} model/next-placeholder
 
-   #{:backspace} #(or (text/delete-char %) (paredit/delete %))
+   #{:backspace} (some-fn text/delete paredit/delete)
    #{:shift :backspace} paredit/delete
    #{:shift :space} paredit/insert-left
-   #{:enter} paredit/insert-outside
-   #{:space} paredit/insert-right
+   #{:space} (maybe-insert \space paredit/insert-right)
 
    #{:ctrl :shift :open-square-bracket} paredit/make-map
    #{:ctrl :shift :nine} paredit/make-seq
@@ -49,8 +58,8 @@
    #{:meta :x} clipboard/cut
    #{:meta :v} clipboard/paste
 
-   #{:tab} clojure/expand-template
-   #{:meta :shift :d} clojure/jump-to-definition
+   #{:tab} completions/complete
+   #{:meta :shift :d} clojure/find-introduction
    #{:shift :three} clojure/toggle-dispatch
 
    #{:meta :z} history/undo
