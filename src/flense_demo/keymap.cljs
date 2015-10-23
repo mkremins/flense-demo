@@ -36,10 +36,10 @@
    #{:ctrl :shift :nine} paredit/make-seq
    #{:ctrl :open-square-bracket} paredit/make-vec
 
-   #{:shift :open-square-bracket} paredit/wrap-map
-   #{:shift :nine} paredit/wrap-seq
-   #{:shift :single-quote} text/wrap-string
-   #{:open-square-bracket} paredit/wrap-vec
+   #{:shift :open-square-bracket} (maybe-insert \{ paredit/wrap-map)
+   #{:shift :nine} (maybe-insert \( paredit/wrap-seq)
+   #{:shift :single-quote} (maybe-insert \" text/wrap-string)
+   #{:open-square-bracket} (maybe-insert \[ paredit/wrap-vec)
 
    #{:meta :shift :left} paredit/grow-left
    #{:meta :shift :right} paredit/grow-right
@@ -60,7 +60,7 @@
 
    #{:tab} completions/complete
    #{:meta :shift :d} clojure/find-introduction
-   #{:shift :three} clojure/toggle-dispatch
+   #{:shift :three} (maybe-insert \# clojure/toggle-dispatch)
 
    #{:meta :z} history/undo
    #{:meta :y} history/redo})

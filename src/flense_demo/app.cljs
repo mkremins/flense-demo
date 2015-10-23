@@ -21,7 +21,7 @@
       (.preventDefault ev)
       (perform! action))))
 
-(def legal-char?
+(def legal-atom-char?
   (let [uppers (map (comp js/String.fromCharCode (partial + 65)) (range 26))
         lowers (map (comp js/String.fromCharCode (partial + 97)) (range 26))
         digits (map str (range 10))
@@ -30,11 +30,12 @@
 
 (defn- handle-keypress [ev]
   (let [c (phalanges/key-char ev)]
-    (when (legal-char? c)
+    (when (or (legal-atom-char? c) (model/editing? @app-state))
       (.preventDefault ev)
       (perform! (partial text/insert c)))))
 
 (defn init []
+  (enable-console-print!)
   (om/root flense/editor app-state
     {:target (.getElementById js/document "editor")})
   ;(om/root sidebar app-state
