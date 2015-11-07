@@ -1,11 +1,9 @@
 (ns flense-demo.app
-  (:require [flense.actions.text :as text]
-            [flense.editor :as flense]
+  (:require [flense.editor :as flense]
             [flense.model :as model]
             [flense-demo.keymap :refer [keymap]]
             [flense-demo.sidebar :refer [sidebar]]
-            [om.core :as om :include-macros true]
-            [om.dom :as dom :include-macros true]
+            [om.core :as om]
             [phalanges.core :as phalanges]))
 
 (defonce app-state
@@ -32,15 +30,15 @@
   (let [c (phalanges/key-char ev)]
     (when (or (legal-atom-char? c) (model/editing? @app-state))
       (.preventDefault ev)
-      (perform! (partial text/insert c)))))
+      (perform! (partial flense.actions.text/insert c)))))
 
 (defn init []
   (enable-console-print!)
   (om/root flense/editor app-state
-    {:target (.getElementById js/document "editor")})
+    {:target (js/document.getElementById "editor")})
   (om/root sidebar app-state
-    {:target (.getElementById js/document "sidebar")})
-  (.addEventListener js/window "keydown" handle-keydown)
-  (.addEventListener js/window "keypress" handle-keypress))
+    {:target (js/document.getElementById "sidebar")})
+  (js/window.addEventListener "keydown" handle-keydown)
+  (js/window.addEventListener "keypress" handle-keypress))
 
 (init)

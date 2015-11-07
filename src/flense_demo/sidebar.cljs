@@ -1,15 +1,9 @@
 (ns flense-demo.sidebar
-  (:require [flense.actions.clipboard :as clip]
-            [flense.actions.clojure :as clojure]
-            [flense.actions.completions :as completions]
-            [flense.actions.history :as hist]
-            [flense.actions.text :as text]
+  (:require [flense.actions.completions :as completions]
             [flense.model :as m]
             [flense-demo.keymap :refer [keymap]]
-            [om.core :as om]
             [om-tools.core :refer-macros [defcomponent]]
-            [om-tools.dom :as dom]
-            [xyzzy.core :as z]))
+            [om-tools.dom :as dom]))
 
 (def special-keynames
   {:alt "⌥"
