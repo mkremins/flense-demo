@@ -116,6 +116,6 @@
           (for [[desc keyset] (keybinds document)
                 :let [enabled? (try (boolean ((keymap keyset) document))
                                  (catch :default _ false))]]
-            (dom/tr #js {:className (if enabled? "enabled" "disabled")}
+            (dom/tr {:class (if enabled? "enabled" "disabled")}
               (dom/td (keyset->keyname keyset))
               (dom/td desc))))))))
