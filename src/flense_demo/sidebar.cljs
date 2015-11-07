@@ -48,7 +48,7 @@
       (and (m/stringlike? loc) (not (m/editing? loc)))
         "Begin editing text inside this form"
       (completions/has-completions? loc)
-        "Select the next completion"
+        "Select next completion"
       :else
         "Select this form's first child")
     #{:down}]
@@ -56,60 +56,66 @@
       (m/editing? loc)
         "Finish editing text inside this form"
       (completions/has-completions? loc)
-        "Select the previous completion"
+        "Select previous completion"
       :else
         "Select this form's parent")
     #{:up}]
-   ["Select this form's previous sibling, or wrap around" #{:left}]
-   ["Select this form's next sibling, or wrap around" #{:right}]])
+   [(if (m/editing? loc)
+      "Move cursor left"
+      "Select this form's previous sibling")
+    #{:left}]
+   [(if (m/editing? loc)
+      "Move cursor right"
+      "Select this form's next sibling")
+    #{:right}]])
 
 (defn structural-keybinds [loc]
   [[(cond
       (m/editing? loc)
-        "Delete the selected text"
+        "Delete selected text"
       (or (not (m/atom? loc)) (m/placeholder? loc))
         "Delete this form"
       :else
-        "Delete the last character of this form")
+        "Delete last character of this form")
     #{:backspace}]
    ["Delete this form" #{:shift :backspace}]
-   ["Insert placeholder to the right" #{:space}]
-   ["Insert placeholder to the left" #{:shift :space}]
-   ["Wrap this form in a sequence" #{:shift :nine}]
+   ["Insert placeholder as next sibling" #{:space}]
+   ["Insert placeholder as previous sibling" #{:shift :space}]])
+
+(defn wrapper-keybinds [loc]
+  [["Wrap this form in a list" #{:shift :nine}]
    ["Wrap this form in a vector" #{:open-square-bracket}]
    ["Wrap this form in a map" #{:shift :open-square-bracket}]
    ["Wrap this form in a string" #{:shift :single-quote}]])
 
 (defn semantic-keybinds [loc]
-  [["Use selected completion" #{:tab}]])
+  [["Insert selected completion" #{:tab}]])
 
 (defn history-keybinds [loc]
-  [["Undo most recently performed action" #{:meta :z}]
-   ["Redo most recently undone action" #{:meta :y}]])
+  [["Undo last action" #{:meta :z}]
+   ["Redo last undo" #{:meta :y}]])
 
 (defn clipboard-keybinds [loc]
   [["Copy this form" #{:meta :c}]
    ["Cut this form" #{:meta :x}]
-   ["Paste most recently copied form" #{:meta :v}]])
+   ["Paste copied form" #{:meta :v}]])
 
 (def available-keybinds
-  [["Movement" movement-keybinds]
-   ["Structural" structural-keybinds]
-   ["Semantic" semantic-keybinds]
-   ["History" history-keybinds]
-   ["Clipboard" clipboard-keybinds]])
+  [movement-keybinds
+   structural-keybinds
+   wrapper-keybinds
+   semantic-keybinds
+   history-keybinds
+   clipboard-keybinds])
 
 (defcomponent sidebar [document owner]
   (render [_]
-    (dom/div
-      (for [[title keybinds] available-keybinds]
-        (dom/section
-          (dom/h3 title)
-          (dom/table
-            (dom/tbody
-              (for [[desc keyset] (keybinds document)
-                    :let [enabled? (try (boolean ((keymap keyset) document))
-                                     (catch :default _ false))]]
-                (dom/tr #js {:className (if enabled? "enabled" "disabled")}
-                  (dom/td (keyset->keyname keyset))
-                  (dom/td desc))))))))))
+    (dom/table
+      (for [keybinds available-keybinds]
+        (dom/tbody
+          (for [[desc keyset] (keybinds document)
+                :let [enabled? (try (boolean ((keymap keyset) document))
+                                 (catch :default _ false))]]
+            (dom/tr #js {:className (if enabled? "enabled" "disabled")}
+              (dom/td (keyset->keyname keyset))
+              (dom/td desc))))))))

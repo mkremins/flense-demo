@@ -9,32 +9,39 @@
       padding: 0;
     }
     body {
-      font-family: 'Source Code Pro';
+      font-family: sans-serif;
       font-size: 14px;
       line-height: 1.4;
-      margin: 40px auto;
-      width: 1200px;
+      margin: 1rem auto;
+      width: 1040px;
+    }
+    #explanation {
+      font-size: 16px;
+      margin-bottom: 1rem;
+      width: 640px;
     }
     #editor {
       display: inline-block;
       margin-right: 30px;
       vertical-align: top;
-      width: 680px;
+      width: 640px;
     }
     #sidebar {
       display: inline-block;
       font-family: sans-serif;
-      width: 480px;
+      width: 360px;
     }
     #sidebar section {
       margin-bottom: 1rem;
     }
     #sidebar tr.disabled {
       color: #ccc;
-      text-decoration: line-through;
+    }
+    #sidebar tr:last-child td {
+      padding-bottom: 1rem;
     }
     #sidebar td:first-child {
-      padding-right: 1rem;
+      padding-right: 2rem;
     }
   </style>
   <link rel="stylesheet" href="vendor/flense/stylesheets/base.css">
@@ -42,6 +49,9 @@
   <title>Flense Demo</title>
 </head>
 <body>
+  <div id="explanation">
+    <p>This is a demo of <a href="https://github.com/mkremins/flense">Flense</a>, an experimental structure editor for Clojure code.</p>
+  </div>
   <div id="editor"></div>
   <div id="sidebar"></div>
   <script src="target/app.js"></script>
