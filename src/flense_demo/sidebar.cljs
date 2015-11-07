@@ -11,54 +11,86 @@
             [om-tools.dom :as dom]
             [xyzzy.core :as z]))
 
+(def special-keynames
+  {:alt "⌥"
+   :backspace "⌫"
+   :close-square-bracket "]"
+   :ctrl "⌃"
+   :down "↓"
+   :left "←"
+   :meta "⌘"
+   :open-square-bracket "["
+   :right "→"
+   :single-quote "'"
+   :shift "⇧"
+   :up "↑"})
+
+(def special-shift-combos
+  {#{:shift :close-square-bracket} "}"
+   #{:shift :nine} "("
+   #{:shift :open-square-bracket} "{"
+   #{:shift :single-quote} "\""
+   #{:shift :zero} ")"})
+
+(defn key->keyname [key]
+  (or (special-keynames key)
+      (clojure.string/capitalize (name key))))
+
+(defn keyset->keyname [keyset]
+  (or (special-shift-combos keyset)
+      (->> keyset
+           (sort-by #(case % :meta 0 :ctrl 1 :shift 2 :alt 3 4))
+           (map key->keyname)
+           clojure.string/join)))
+
 (defn movement-keybinds [loc]
-  [["Down" (cond
-             (m/stringlike? loc)
-               "Begin editing text inside this form"
-             (completions/has-completions? loc)
-               "Select the next completion"
-             :else
-               "Select this form's first child")
-           #{:down}]
-   ["Up" (cond
-           (and (m/stringlike? loc) (:editing? (z/node loc)))
-             "Finish editing text inside this form"
-           (completions/has-completions? loc)
-             "Select the previous completion"
-           :else
-             "Select this form's parent")
-         #{:up}]
-   ["Left" "Select the form to the left, or wrap around" #{:left}]
-   ["Right" "Select the form to the right, or wrap around" #{:right}]])
+  [[(cond
+      (and (m/stringlike? loc) (not (m/editing? loc)))
+        "Begin editing text inside this form"
+      (completions/has-completions? loc)
+        "Select the next completion"
+      :else
+        "Select this form's first child")
+    #{:down}]
+   [(cond
+      (m/editing? loc)
+        "Finish editing text inside this form"
+      (completions/has-completions? loc)
+        "Select the previous completion"
+      :else
+        "Select this form's parent")
+    #{:up}]
+   ["Select this form's previous sibling, or wrap around" #{:left}]
+   ["Select this form's next sibling, or wrap around" #{:right}]])
 
 (defn structural-keybinds [loc]
-  [["Backspace" (cond
-                  (and (m/stringlike? loc) (:editing? (z/node loc)))
-                    "Delete the selected text"
-                  (or (not (m/atom? loc)) (m/placeholder? loc))
-                    "Delete this form"
-                  :else
-                    "Delete the last character of this form")
-                #{:backspace}]
-   ["Shift+Backspace" "Delete this form" #{:shift :backspace}]
-   ["Space" "Insert placeholder to the right" #{:space}]
-   ["Shift+Space" "Insert placeholder to the left" #{:shift :space}]
-   ["(" "Wrap this form in a sequence" #{:shift :nine}]
-   ["[" "Wrap this form in a vector" #{:open-square-bracket}]
-   ["{" "Wrap this form in a map" #{:shift :open-square-bracket}]
-   ["\"" "Wrap this form in a string" #{:shift :single-quote}]])
+  [[(cond
+      (m/editing? loc)
+        "Delete the selected text"
+      (or (not (m/atom? loc)) (m/placeholder? loc))
+        "Delete this form"
+      :else
+        "Delete the last character of this form")
+    #{:backspace}]
+   ["Delete this form" #{:shift :backspace}]
+   ["Insert placeholder to the right" #{:space}]
+   ["Insert placeholder to the left" #{:shift :space}]
+   ["Wrap this form in a sequence" #{:shift :nine}]
+   ["Wrap this form in a vector" #{:open-square-bracket}]
+   ["Wrap this form in a map" #{:shift :open-square-bracket}]
+   ["Wrap this form in a string" #{:shift :single-quote}]])
 
 (defn semantic-keybinds [loc]
-  [["Tab" "Use selected completion" #{:tab}]])
+  [["Use selected completion" #{:tab}]])
 
 (defn history-keybinds [loc]
-  [["Cmd+Z" "Undo most recently performed action" #{:meta :z}]
-   ["Cmd+Y" "Redo most recently undone action" #{:meta :y}]])
+  [["Undo most recently performed action" #{:meta :z}]
+   ["Redo most recently undone action" #{:meta :y}]])
 
 (defn clipboard-keybinds [loc]
-  [["Cmd+C" "Copy this form" #{:meta :c}]
-   ["Cmd+X" "Cut this form" #{:meta :x}]
-   ["Cmd+V" "Paste most recently copied form" #{:meta :v}]])
+  [["Copy this form" #{:meta :c}]
+   ["Cut this form" #{:meta :x}]
+   ["Paste most recently copied form" #{:meta :v}]])
 
 (def available-keybinds
   [["Movement" movement-keybinds]
@@ -75,8 +107,9 @@
           (dom/h3 title)
           (dom/table
             (dom/tbody
-              (for [[keyname desc keyset] (keybinds document)
-                    :let [enabled? ((keymap keyset) document)]]
+              (for [[desc keyset] (keybinds document)
+                    :let [enabled? (try (boolean ((keymap keyset) document))
+                                     (catch :default _ false))]]
                 (dom/tr #js {:className (if enabled? "enabled" "disabled")}
-                  (dom/td keyname)
+                  (dom/td (keyset->keyname keyset))
                   (dom/td desc))))))))))

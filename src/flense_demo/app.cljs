@@ -38,8 +38,8 @@
   (enable-console-print!)
   (om/root flense/editor app-state
     {:target (.getElementById js/document "editor")})
-  ;(om/root sidebar app-state
-  ;  {:target (.getElementById js/document "sidebar")})
+  (om/root sidebar app-state
+    {:target (.getElementById js/document "sidebar")})
   (.addEventListener js/window "keydown" handle-keydown)
   (.addEventListener js/window "keypress" handle-keypress))
 
