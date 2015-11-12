@@ -8,34 +8,49 @@
 (def special-keynames
   {:alt "⌥"
    :backspace "⌫"
+   :close-curly-bracket "}"
+   :close-parenthesis ")"
    :close-square-bracket "]"
    :ctrl "⌃"
+   :double-quote "\""
    :down "↓"
    :left "←"
    :meta "⌘"
+   :open-curly-bracket "{"
+   :open-parenthesis "("
    :open-square-bracket "["
    :right "→"
    :single-quote "'"
    :shift "⇧"
    :up "↑"})
 
-(def special-shift-combos
-  {#{:shift :close-square-bracket} "}"
-   #{:shift :nine} "("
-   #{:shift :open-square-bracket} "{"
-   #{:shift :single-quote} "\""
-   #{:shift :zero} ")"})
+(def shift-combo
+  {:close-square-bracket :close-curly-bracket
+   :nine :open-parenthesis
+   :open-square-bracket :open-curly-bracket
+   :single-quote :double-quote
+   :zero :close-parenthesis})
+
+(defn non-modifier-key [keyset]
+  (first (clojure.set/difference keyset #{:meta :ctrl :shift :alt})))
+
+(defn maybe-rewrite-shift-combo [keyset]
+  (let [non-mod (non-modifier-key keyset)
+        combo (shift-combo non-mod)]
+    (if (and (contains? keyset :shift) combo)
+      (-> keyset (disj :shift non-mod) (conj combo))
+      keyset)))
 
 (defn key->keyname [key]
   (or (special-keynames key)
       (clojure.string/capitalize (name key))))
 
 (defn keyset->keyname [keyset]
-  (or (special-shift-combos keyset)
-      (->> keyset
-           (sort-by #(case % :meta 0 :ctrl 1 :shift 2 :alt 3 4))
-           (map key->keyname)
-           clojure.string/join)))
+  (->> keyset
+       maybe-rewrite-shift-combo
+       (sort-by #(case % :meta 0 :ctrl 1 :shift 2 :alt 3 4))
+       (map key->keyname)
+       clojure.string/join))
 
 (defn movement-keybinds [loc]
   [[(cond
