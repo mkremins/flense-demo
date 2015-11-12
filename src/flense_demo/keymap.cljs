@@ -13,11 +13,14 @@
      (text/insert ch %)
      (else-fn %)))
 
+(defn safe-up [loc]
+  (some-> loc z/up (z/ensure z/up)))
+
 (def keymap
   {#{:down} (some-fn text/begin-editing completions/next-completion z/down)
    #{:left} (some-fn text/move-caret-left z/left-or-wrap)
    #{:right} (some-fn text/move-caret-right z/right-or-wrap)
-   #{:up} (some-fn text/cease-editing completions/prev-completion z/up)
+   #{:up} (some-fn text/cease-editing completions/prev-completion safe-up)
    #{:alt :left} text/move-caret-left-by-word
    #{:alt :right} text/move-caret-right-by-word
    #{:shift :left} (some-fn text/adjust-range-left z/prev)
